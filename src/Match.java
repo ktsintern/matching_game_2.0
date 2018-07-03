@@ -4,90 +4,41 @@ import java.awt.event.*;
 import java.io.*;
 import java.util.*;
 
-public class Match implements ActionListener {
+public class Match extends Clock implements ActionListener {
 	
 	public static void main(String[] args){
 		
 		new Match();
-
-		System.out.println(prompts);
-		
 		
 	}
 	
-	//creating prompts
-	public static Map<String, String> prompts = new HashMap<String, String>();
-	public static ArrayList<String> answersList = new ArrayList<String>();
-	
-	private static void promptCreator(){
-		try{
-			FileReader fr = new FileReader("prompts");
-			BufferedReader br = new BufferedReader(fr);
-			
-			//adding prompts into HashMap prompts
-			String str;
-			String[] pair;
-			while((str = br.readLine()) != null){
-				pair = str.split(",");
-				prompts.put(pair[0], pair[1]);
-				answersList.add(pair[1]);
-			}
-			br.close();
-		} catch(IOException e){
-			System.out.println("File not found");
-		}
+	public Match(){
+		gamePlay();
 	}
 	
-	private void leaderBoardCreator(){
-		//creating hashmap that stores player and highest scores as the file is perused
-		Map<String, String> highScores = new HashMap<String, String>();
-		
-		//reads leaderboard first
-		try{
-			FileReader fr = new FileReader("leaderboard");
-			BufferedReader br = new BufferedReader(fr);
-			
-			//creating leaderboard
-			String str;
-			String[] pair;
-			while((str = br.readLine()) != null){
-				pair = str.split(",");
-				highScores.put(pair[0], pair[1]);
-			}
-			br.close();
-		} catch(IOException e1){
-			System.out.println("File not found");
-		}
-		
-		//creates window to display leaderboard
-		JFrame ldrBrdFrame = new JFrame("LeaderBoard");
-		JPanel ldrBrdPanel = new JPanel();
-		
-		ldrBrdFrame.add(ldrBrdPanel);
-		
-		JLabel[] highScoresLbl = new JLabel[5];
-		for(int i = 0; i < highScores.size(); i++){
-			highScoresLbl[i].setText(highScores.get(i) + ": " + highScores.get((String) highScores.keySet().toArray()[i]));
-			ldrBrdPanel.add(highScoresLbl[i]);
-		}
-		
-		ldrBrdPanel.setVisible(true);
-		
-	}
+	//instantiating timer
+	public Clock clock = new Clock();
 	
-	//creating GUI
+	//creating GUI for main game
 	public JFrame mainFrame = new JFrame("Best Matching Game");
 	public static JPanel QPanel = new JPanel();
 	public static JPanel APanel = new JPanel();
 	public JPanel userPanel = new JPanel();
-	
+		
 	public JLabel QLabel = new JLabel("Questions");
 	public JLabel ALabel = new JLabel("Answers");
+	public JLabel timeLabel = new JLabel("Time: " + clock.translate());
 	
 	public JButton startBtn = new JButton("Start");
 	public JButton leaderBoardBtn = new JButton("Leaderboard");
 	
-	public Match(){
+	public JTextField enterName = new JTextField("Enter your name here");
+	
+	//creating GUI for leaderboard
+	public JFrame ldrBrdFrame = new JFrame("LeaderBoard");
+	public JPanel ldrBrdPanel = new JPanel();
+	
+	private void gamePlay(){
 		//setting up main frame
 		mainFrame.setSize(800, 1000);
 		mainFrame.setVisible(true);
@@ -102,8 +53,19 @@ public class Match implements ActionListener {
 		startBtn.setVisible(true);
 		startBtn.addActionListener(this);
 		userPanel.add(leaderBoardBtn);
-		leaderBoardBtn.setVisible(true);
+		leaderBoardBtn.setVisible(false);
 		leaderBoardBtn.addActionListener(this);
+		
+		//adding enterName text field
+		userPanel.add(enterName);
+		enterName.setSize(150, 35);
+		enterName.setVisible(false);
+		
+		//adding timeLabel
+		userPanel.add(timeLabel, BorderLayout.EAST);
+		timeLabel.setSize(100, 35);
+		timeLabel.setOpaque(true);
+		timeLabel.setVisible(true);
 		
 		//setting up QPanel
 		mainFrame.add(QPanel, BorderLayout.WEST);
@@ -122,6 +84,78 @@ public class Match implements ActionListener {
 		
 		APanel.add(ALabel);
 		ALabel.setVisible(true);
+		
+		//setting up leaderboard frame
+		ldrBrdFrame.setSize(150, 200);
+		ldrBrdFrame.setVisible(false);
+		
+		//setting up ldrBrdPanel
+		ldrBrdFrame.add(ldrBrdPanel);
+		
+	}
+	
+	//creating prompts
+	public static Map<String, String> prompts = new HashMap<String, String>();
+	public static ArrayList<String> answersList = new ArrayList<String>();
+	
+	private void promptCreator(){
+		try{
+			FileReader fr = new FileReader("prompts");
+			BufferedReader br = new BufferedReader(fr);
+				
+			//adding prompts into HashMap prompts
+			String str;
+			String[] pair;
+			while((str = br.readLine()) != null){
+				pair = str.split(",");
+				prompts.put(pair[0], pair[1]);
+				answersList.add(pair[1]);
+			}
+			br.close();
+		} catch(IOException e){
+			System.out.println("File not found");
+		}
+	}
+		
+	//instantiating variables to create a leaderboard GUI
+	public Map<String, String> highScores = new LinkedHashMap<String, String>();
+		
+	private void leaderBoardCreator(){
+	//reads leaderboard first
+	try{		
+		FileReader fr = new FileReader("leaderboard");
+		BufferedReader br = new BufferedReader(fr);
+				
+		//creating leaderboard
+		String str;
+		String[] pair;
+		while((str = br.readLine()) != null){
+			pair = str.split(",");
+			System.out.println("\n" + pair[0] + " " + pair[1]);
+			System.out.println("Before: " + highScores);
+			highScores.put(pair[0], pair[1]);
+			System.out.println("After: " + highScores);
+		}
+		br.close();
+		} catch(IOException e1){
+			System.out.println("File not found");
+		}
+		
+		//making sure there aren't any already-stored scores
+		ldrBrdPanel.removeAll();
+		
+		//adding the highScores into the label array
+		for(int i = 0; i < 5; i++){
+			JLabel highScoresLbl = new JLabel();
+			highScoresLbl.setText((i + 1) + ". " + (String) highScores.keySet().toArray()[i] + ": " + highScores.get((String) highScores.keySet().toArray()[i]));
+			ldrBrdPanel.add(highScoresLbl);
+			highScoresLbl.setVisible(true);
+		}
+		
+		ldrBrdFrame.setVisible(true);
+		ldrBrdPanel.setVisible(true);
+		System.out.println(highScores);
+			
 	}
 	
 	//a method to randomize buttons
@@ -158,9 +192,11 @@ public class Match implements ActionListener {
 		
 		if(((AbstractButton) e.getSource()).equals(startBtn)){
 			startBtn.setEnabled(false);
+			leaderBoardBtn.setVisible(true);
 			randomizer();
-			timer();
+			clock.start();
 			System.out.println("clicked start");
+			System.out.println(prompts);
 			
 		}
 		else if(!(startBtn.isEnabled())){ 
@@ -171,7 +207,7 @@ public class Match implements ActionListener {
 						index = i;
 						savedQButton = (JButton) ((AbstractButton) e.getSource());
 						savedQButton.setOpaque(true);
-						savedQButton.setBackground(Color.YELLOW);
+						savedQButton.setBackground(Color.MAGENTA);
 						Qcounter++;
 						System.out.println("question clicked " + savedQButton.getText());
 					}
@@ -184,7 +220,7 @@ public class Match implements ActionListener {
 						chosenAnswer = prompts.get((String) prompts.keySet().toArray()[i]);
 						savedAButton = (JButton) ((AbstractButton) e.getSource());
 						savedAButton.setOpaque(true);
-						savedAButton.setBackground(Color.YELLOW);
+						savedAButton.setBackground(Color.MAGENTA);
 						Acounter++;
 						System.out.println("answer clicked " + savedAButton.getText());
 					}
@@ -217,26 +253,32 @@ public class Match implements ActionListener {
 			}
 		}
 		
-		//if all matches have been completed reset the board
+		//if all matches have been completed reset the board ***doesn't work properly***
 		if(numCorrect == prompts.size()){
-			//wipe board clean, add everything back in again
+			
+			enterName.setVisible(true);
+			//wipe board clean, create a new gamePlay
+			/*mainFrame.removeAll();
+			gamePlay();
+			startBtn.setEnabled(true);*/
 		}
 		
 		//if leaderboard button is clicked then leaderboard file should be displayed
 		if(((AbstractButton) e.getSource()).equals(leaderBoardBtn)){
+			System.out.println("leaderboard button clicked");
 			leaderBoardCreator();
 		}
 		
 	}
 	
+	private void checkScores(){
+		enterName.getText();
+		//create timer to retrieve time for completion
+	}
+	
 	//instantiating variables to create and display a timer
 	String time = "-";
 	public JLabel timerLbl = new JLabel(time);
-	
-	//trying to create a timer
-	public void timer(){
-		
-	}
 	
 
 
