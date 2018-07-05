@@ -3,21 +3,18 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
+import java.util.Timer;
 
-public class Match extends Clock implements ActionListener {
+public class Match implements ActionListener {
 	
 	public static void main(String[] args){
 		
 		new Match();
-		
 	}
 	
 	public Match(){
 		gamePlay();
 	}
-	
-	//instantiating timer
-	public Clock clock = new Clock();
 	
 	//creating GUI for main game
 	public JFrame mainFrame = new JFrame("Best Matching Game");
@@ -27,10 +24,11 @@ public class Match extends Clock implements ActionListener {
 		
 	public JLabel QLabel = new JLabel("Questions");
 	public JLabel ALabel = new JLabel("Answers");
-	public JLabel timeLabel = new JLabel("Time: " + clock.translate());
+	public JLabel timerLabel = new JLabel("Time: - ");
 	
 	public JButton startBtn = new JButton("Start");
 	public JButton leaderBoardBtn = new JButton("Leaderboard");
+	public JButton enterInfo = new JButton("Done");
 	
 	public JTextField enterName = new JTextField("Enter your name here");
 	
@@ -41,12 +39,14 @@ public class Match extends Clock implements ActionListener {
 	private void gamePlay(){
 		//setting up main frame
 		mainFrame.setSize(800, 1000);
+		mainFrame.setLayout(new GridLayout());
 		mainFrame.setVisible(true);
 		
 		//setting up userPanel
 		mainFrame.add(userPanel, BorderLayout.SOUTH);
 		//userPanel.setSize(800, 300);
 		userPanel.setVisible(true);
+		userPanel.setLayout(new GridLayout());
 		userPanel.setBackground(Color.BLACK);
 		//adding start button and leaderboard button
 		userPanel.add(startBtn);
@@ -62,10 +62,14 @@ public class Match extends Clock implements ActionListener {
 		enterName.setVisible(false);
 		
 		//adding timeLabel
-		userPanel.add(timeLabel, BorderLayout.EAST);
-		timeLabel.setSize(100, 35);
-		timeLabel.setOpaque(true);
-		timeLabel.setVisible(true);
+		userPanel.add(timerLabel, BorderLayout.EAST);
+		timerLabel.setSize(100, 35);
+		timerLabel.setOpaque(true);
+		timerLabel.setVisible(true);
+		
+		//adding enterInfo 
+		userPanel.add(enterInfo);
+		enterInfo.setVisible(false);
 		
 		//setting up QPanel
 		mainFrame.add(QPanel, BorderLayout.WEST);
@@ -131,10 +135,7 @@ public class Match extends Clock implements ActionListener {
 		String[] pair;
 		while((str = br.readLine()) != null){
 			pair = str.split(",");
-			System.out.println("\n" + pair[0] + " " + pair[1]);
-			System.out.println("Before: " + highScores);
 			highScores.put(pair[0], pair[1]);
-			System.out.println("After: " + highScores);
 		}
 		br.close();
 		} catch(IOException e1){
@@ -156,6 +157,52 @@ public class Match extends Clock implements ActionListener {
 		ldrBrdPanel.setVisible(true);
 		System.out.println(highScores);
 			
+	}
+	
+	//a method to update the leaderboard file
+	public void leaderBoardUpdater(){
+		ArrayList<Integer> scoreStorer = new ArrayList<Integer>();
+		
+		try{
+			FileReader fr = new FileReader("leaderboard");
+			BufferedReader br = new BufferedReader(fr);
+			
+			String str;
+			int startIndex = 0;
+			int endIndex = 0;
+			int secIndex = 0;
+			
+			//need variables to store time
+			int seconds;
+			
+			while((str = br.readLine()) != null){
+				for(int i = 0; i < str.length(); i++){
+					if(str.substring(i, i + 1).equals(",")){
+						startIndex = i + 1;
+					}
+					if(str.substring(i, i + 1).equals(":")){
+						endIndex = i;
+						secIndex = i + 1;
+					}
+				}
+				seconds = Integer.parseInt(str.substring(startIndex, endIndex)) * 60 + Integer.parseInt(str.substring(secIndex));
+				scoreStorer.add(seconds);
+			}
+		} catch(IOException e2){
+			System.out.println("File not found");
+		}
+		
+		for(int i = 0; i < scoreStorer.size(); i++){
+			if(scoreStorer.get(i) < clock.secondsPassed){
+				
+			}
+		}
+		
+		
+		
+		
+		
+		
 	}
 	
 	//a method to randomize buttons
@@ -188,13 +235,16 @@ public class Match extends Clock implements ActionListener {
 	int index = 0;
 	int numCorrect = 0;
 	
+	//creating timer using Clock.class
+	Clock clock = new Clock(timerLabel);
+	
 	public void actionPerformed(ActionEvent e) {
 		
 		if(((AbstractButton) e.getSource()).equals(startBtn)){
 			startBtn.setEnabled(false);
 			leaderBoardBtn.setVisible(true);
 			randomizer();
-			clock.start();
+			clock.start();//figure out how to print it out onto a label
 			System.out.println("clicked start");
 			System.out.println(prompts);
 			
@@ -255,31 +305,37 @@ public class Match extends Clock implements ActionListener {
 		
 		//if all matches have been completed reset the board ***doesn't work properly***
 		if(numCorrect == prompts.size()){
+			clock.stop();
 			
-			enterName.setVisible(true);
+			//need better formatting
+			//enterName.setVisible(true);
+			//enterInfo.setVisible(true);
+		}
+		
+		//enterInfo button is clicked the scores need to be entered into the leaderboard file and game needs to restart
+		if(((AbstractButton) e.getSource()).equals(enterInfo)){
+			startBtn.setEnabled(true);
 			//wipe board clean, create a new gamePlay
 			/*mainFrame.removeAll();
-			gamePlay();
-			startBtn.setEnabled(true);*/
+			gamePlay();*/
 		}
 		
 		//if leaderboard button is clicked then leaderboard file should be displayed
 		if(((AbstractButton) e.getSource()).equals(leaderBoardBtn)){
 			System.out.println("leaderboard button clicked");
+			leaderBoardUpdater();//not finished
 			leaderBoardCreator();
 		}
 		
 	}
 	
+	//instantiating variables to keep track of names and scores
+	public String name;
+	public int score;
+	
 	private void checkScores(){
-		enterName.getText();
-		//create timer to retrieve time for completion
+		name = enterName.getText();
+		score = clock.secondsPassed;
 	}
-	
-	//instantiating variables to create and display a timer
-	String time = "-";
-	public JLabel timerLbl = new JLabel(time);
-	
-
 
 }

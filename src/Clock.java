@@ -1,8 +1,15 @@
 import java.util.Timer;
 import java.util.TimerTask;
+import javax.swing.JLabel;
 
 //no???
-public class Clock {
+public class Clock{
+	
+	public JLabel timeLabel;
+	
+	public Clock(JLabel label){
+		timeLabel = label;
+	}
 	
 	int secondsPassed = 0;
 	int minutesPassed = 0;
@@ -11,8 +18,8 @@ public class Clock {
 	TimerTask task = new TimerTask(){
 		public void run(){
 			secondsPassed++;
-			System.out.println(translate());
-			System.out.println("Seconds passed: " + secondsPassed);
+			translate(timeLabel);
+			//System.out.println("Seconds passed: " + secondsPassed);
 		}
 	};
 	
@@ -39,9 +46,26 @@ public class Clock {
 				
 	}
 	
-	public static void main(String[] args){
-		Clock clock = new Clock();
-		clock.start();
+	public void translate(JLabel label){
+		
+		String seconds = "" + secondsPassed;
+		if(secondsPassed == 60){
+			minutesPassed++;
+			secondsPassed = 0;
+		}
+		
+		if(secondsPassed < 10){
+			seconds = "0" + secondsPassed;
+		}
+		label.setText("Time: " + minutesPassed + ":" + seconds);
+				
 	}
+	
+	public static void main(String[] args){
+		//Clock clock = new Clock();
+		//clock.start();
+	}
+	
+	
 	
 }
