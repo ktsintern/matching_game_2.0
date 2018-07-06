@@ -27,7 +27,7 @@ public class Match implements ActionListener {
 	
 	public JButton startBtn = new JButton("Start");
 	public JButton leaderBoardBtn = new JButton("Leaderboard");
-	public JButton enterInfo = new JButton("Done");
+	public JButton done = new JButton("Done");
 	
 	public JTextField enterName = new JTextField("Enter your name here");
 	
@@ -64,9 +64,10 @@ public class Match implements ActionListener {
 		timerLabel.setOpaque(true);
 		timerLabel.setVisible(true);
 		
-		//adding enterInfo 
-		userPanel.add(enterInfo);
-		enterInfo.setVisible(false);
+		//adding done 
+		userPanel.add(done);
+		done.setVisible(false);
+		done.addActionListener(this);
 		
 		//setting up QPanel
 		mainFrame.add(QPanel, BorderLayout.WEST);
@@ -140,82 +141,49 @@ public class Match implements ActionListener {
 		//making sure there aren't any already-stored scores
 		ldrBrdPanel.removeAll();
 		
-		//adding the highScores into the label array
+		//making each high score its own label
 		for(int i = 0; i < 5; i++){
 			JLabel highScoresLbl = new JLabel();
 			highScoresLbl.setText((i + 1) + ". " + (String) highScores.keySet().toArray()[i] + ": " + highScores.get((String) highScores.keySet().toArray()[i]));
 			ldrBrdPanel.add(highScoresLbl);
 			highScoresLbl.setVisible(true);
 		}
-		
-		ldrBrdFrame.setVisible(true);
-		ldrBrdPanel.setVisible(true);
-		System.out.println(highScores);
 			
 	}
 	
-	//a method to update the leaderboard file
-	public void leaderBoardUpdater(){
+	//a method to update the leaderboard file ***not finished***
+	public void leaderBoardUpdater() throws FileNotFoundException{
 		ArrayList<Integer> scoreStorer = new ArrayList<Integer>();
-		int toReplace = 0;
-		
-		try{
-			BufferedReader br = new BufferedReader(new FileReader("leaderboard"));
+		try {
+			FileReader fr = new FileReader("leaderboard");
+			FileWriter fw = new FileWriter("leaderboard");
+			
+			BufferedReader reader = new BufferedReader(fr);
+			BufferedWriter writer = new BufferedWriter(fw);
 			
 			String str;
-			int startIndex = 0;
-			int endIndex = 0;
-			int secIndex = 0;
 			
-			//need variables to store time
-			int seconds;
-			
-			while((str = br.readLine()) != null){
-				for(int i = 0; i < str.length(); i++){
-					if(str.substring(i, i + 1).equals(",")){
-						startIndex = i + 1;
+			for(int i = 0; i < highScores.size(); i++){
+				for(int j = 0; j < highScores.get((String) highScores.keySet().toArray()[i]).length(); j++){
+					if(highScores.get((String) highScores.keySet().toArray()[j]).equals(":")){
+						int minutesToSec = Integer.parseInt((String) highScores.keySet().toArray()[j]) * 60;
+						int sec = Integer.parseInt(highScores.get((String) highScores.keySet().toArray()[j]));
+						scoreStorer.add(minutesToSec + sec);
 					}
-					if(str.substring(i, i + 1).equals(":")){
-						endIndex = i;
-						secIndex = i + 1;
-					}
-					
-					seconds = Integer.parseInt(str.substring(startIndex, endIndex)) * 60 + Integer.parseInt(str.substring(secIndex));
-					scoreStorer.add(seconds);
 				}
 			}
-			br.close();
 			
-		} catch(IOException e2){
+			for(int i = 0; i < scoreStorer.size(); i++){
+				if(clock.secondsPassed >= scoreStorer.get(i)){
+					
+				}
+			}
+			
+			
+			
+		} catch (IOException e) {
 			System.out.println("File not found");
 		}
-		for(int i = 0; i < scoreStorer.size(); i++){
-			if(scoreStorer.get(i) < clock.secondsPassed){
-				toReplace = i;
-				break;
-			}
-		}
-		
-		try{
-			BufferedReader br = new BufferedReader(new FileReader("leaderboard"));
-			BufferedWriter bw = new BufferedWriter(new FileWriter("leaderboard"));
-			StringBuffer sb = new StringBuffer();
-			
-			String str;
-			
-			while((str = br.readLine()) != null){
-				if(str.equals((String) highScores.keySet().toArray()[toReplace] + "," + highScores.get((String) highScores.keySet().toArray()[toReplace]))){
-					sb.append(enterName.getText() + "," + timerLabel.getText().substring(6));
-				}
-				if(str.equals((String) highScores.keySet().toArray()[highScores.size() - 1] + "," + highScores.get((String) highScores.keySet().toArray()[highScores.size() - 1]))){
-					bw.write("");
-				}
-			}
-			
-		} catch(IOException e3){
-			System.out.println("File not found");	
-		}
-			
 					
 	}
 
@@ -324,12 +292,14 @@ public class Match implements ActionListener {
 			
 			//need better formatting
 			enterName.setVisible(true);
-			enterInfo.setVisible(true);
+			done.setVisible(true);
 		}
 		
-		//enterInfo button is clicked the scores need to be entered into the leaderboard file and game needs to restart
-		if(((AbstractButton) e.getSource()).equals(enterInfo)){
+		//done button is clicked the scores need to be entered into the leaderboard file and game needs to restart
+		if(((AbstractButton) e.getSource()).equals(done)){
+			System.out.println("Done button clicked");
 			startBtn.setEnabled(true);
+			//leaderBoardUpdater();
 			//wipe board clean, create a new gamePlay
 			/*mainFrame.removeAll();
 			gamePlay();*/
@@ -338,19 +308,13 @@ public class Match implements ActionListener {
 		//if leaderboard button is clicked then leaderboard file should be displayed
 		if(((AbstractButton) e.getSource()).equals(leaderBoardBtn)){
 			System.out.println("leaderboard button clicked");
-			leaderBoardUpdater();//not finished
+			//leaderBoardUpdater();//not finished
 			leaderBoardCreator();
+			ldrBrdFrame.setVisible(true);
+			ldrBrdPanel.setVisible(true);
+			System.out.println(highScores);
 		}
 		
-	}
-	
-	//instantiating variables to keep track of names and scores
-	public String name;
-	public int score;
-	
-	private void checkScores(){
-		name = enterName.getText();
-		score = clock.secondsPassed;
 	}
 
 }
