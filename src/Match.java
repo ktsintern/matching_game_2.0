@@ -3,7 +3,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
-import java.util.Timer;
 
 public class Match implements ActionListener {
 	
@@ -39,14 +38,12 @@ public class Match implements ActionListener {
 	private void gamePlay(){
 		//setting up main frame
 		mainFrame.setSize(800, 1000);
-		mainFrame.setLayout(new GridLayout());
 		mainFrame.setVisible(true);
 		
 		//setting up userPanel
 		mainFrame.add(userPanel, BorderLayout.SOUTH);
 		//userPanel.setSize(800, 300);
 		userPanel.setVisible(true);
-		userPanel.setLayout(new GridLayout());
 		userPanel.setBackground(Color.BLACK);
 		//adding start button and leaderboard button
 		userPanel.add(startBtn);
@@ -104,8 +101,7 @@ public class Match implements ActionListener {
 	
 	private void promptCreator(){
 		try{
-			FileReader fr = new FileReader("prompts");
-			BufferedReader br = new BufferedReader(fr);
+			BufferedReader br = new BufferedReader(new FileReader("prompts"));
 				
 			//adding prompts into HashMap prompts
 			String str;
@@ -127,8 +123,7 @@ public class Match implements ActionListener {
 	private void leaderBoardCreator(){
 	//reads leaderboard first
 	try{		
-		FileReader fr = new FileReader("leaderboard");
-		BufferedReader br = new BufferedReader(fr);
+		BufferedReader br = new BufferedReader(new FileReader("leaderboard"));
 				
 		//creating leaderboard
 		String str;
@@ -137,8 +132,8 @@ public class Match implements ActionListener {
 			pair = str.split(",");
 			highScores.put(pair[0], pair[1]);
 		}
-		br.close();
-		} catch(IOException e1){
+		br.close();	
+	} catch(IOException e1){
 			System.out.println("File not found");
 		}
 		
@@ -162,10 +157,10 @@ public class Match implements ActionListener {
 	//a method to update the leaderboard file
 	public void leaderBoardUpdater(){
 		ArrayList<Integer> scoreStorer = new ArrayList<Integer>();
+		int toReplace = 0;
 		
 		try{
-			FileReader fr = new FileReader("leaderboard");
-			BufferedReader br = new BufferedReader(fr);
+			BufferedReader br = new BufferedReader(new FileReader("leaderboard"));
 			
 			String str;
 			int startIndex = 0;
@@ -184,26 +179,46 @@ public class Match implements ActionListener {
 						endIndex = i;
 						secIndex = i + 1;
 					}
+					
+					seconds = Integer.parseInt(str.substring(startIndex, endIndex)) * 60 + Integer.parseInt(str.substring(secIndex));
+					scoreStorer.add(seconds);
 				}
-				seconds = Integer.parseInt(str.substring(startIndex, endIndex)) * 60 + Integer.parseInt(str.substring(secIndex));
-				scoreStorer.add(seconds);
 			}
+			br.close();
+			
 		} catch(IOException e2){
 			System.out.println("File not found");
 		}
-		
 		for(int i = 0; i < scoreStorer.size(); i++){
 			if(scoreStorer.get(i) < clock.secondsPassed){
-				
+				toReplace = i;
+				break;
 			}
 		}
 		
-		
-		
-		
-		
-		
+		try{
+			BufferedReader br = new BufferedReader(new FileReader("leaderboard"));
+			BufferedWriter bw = new BufferedWriter(new FileWriter("leaderboard"));
+			StringBuffer sb = new StringBuffer();
+			
+			String str;
+			
+			while((str = br.readLine()) != null){
+				if(str.equals((String) highScores.keySet().toArray()[toReplace] + "," + highScores.get((String) highScores.keySet().toArray()[toReplace]))){
+					sb.append(enterName.getText() + "," + timerLabel.getText().substring(6));
+				}
+				if(str.equals((String) highScores.keySet().toArray()[highScores.size() - 1] + "," + highScores.get((String) highScores.keySet().toArray()[highScores.size() - 1]))){
+					bw.write("");
+				}
+			}
+			
+		} catch(IOException e3){
+			System.out.println("File not found");	
+		}
+			
+					
 	}
+
 	
 	//a method to randomize buttons
 	public void randomizer(){
@@ -308,8 +323,8 @@ public class Match implements ActionListener {
 			clock.stop();
 			
 			//need better formatting
-			//enterName.setVisible(true);
-			//enterInfo.setVisible(true);
+			enterName.setVisible(true);
+			enterInfo.setVisible(true);
 		}
 		
 		//enterInfo button is clicked the scores need to be entered into the leaderboard file and game needs to restart
